@@ -1,0 +1,54 @@
+{
+  "name": "n8n-nodes-testneo",
+  "version": "0.1.0",
+  "description": "Official TestNeo community node — agent-run ingest, post-agent verification (PASS/BLOCK), and release outcome recording. Same REST contracts as the TestNeo n8n HTTP templates.",
+  "license": "MIT",
+  "homepage": "https://testneo.ai/docs/n8n.html",
+  "author": {
+    "name": "TestNeo",
+    "email": "support@testneo.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gururajhm-neo/testneo-ai-n8n-nodes-testneo.git"
+  },
+  "keywords": [
+    "n8n-community-node-package",
+    "testneo",
+    "qa",
+    "release-intelligence",
+    "agent-verification"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc && npm run copy:assets",
+    "copy:assets": "mkdir -p dist/nodes/TestNeo && cp nodes/TestNeo/*.svg dist/nodes/TestNeo/ 2>/dev/null || true",
+    "build:watch": "tsc --watch",
+    "lint": "tsc --noEmit",
+    "test": "npm run lint && npx --yes tsx --test nodes/TestNeo/executionStatus.test.ts && npm run build",
+    "prepublishOnly": "npm run test"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/TestNeoApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/TestNeo/TestNeo.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "n8n-workflow": "^1.82.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}

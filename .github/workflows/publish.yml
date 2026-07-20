@@ -1,0 +1,32 @@
+name: Publish n8n-nodes-testneo
+
+on:
+  push:
+    tags:
+      - '0.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Test and build
+        run: npm test
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-testneo",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Official TestNeo community node — agent-run ingest, post-agent verification (PASS/BLOCK), and release outcome recording. Same REST contracts as the TestNeo n8n HTTP templates.",
   "license": "MIT",
   "homepage": "https://testneo.ai/docs/n8n.html",
@@ -24,8 +24,9 @@
     "copy:assets": "mkdir -p dist/nodes/TestNeo && cp nodes/TestNeo/*.svg dist/nodes/TestNeo/ 2>/dev/null || true",
     "build:watch": "tsc --watch",
     "lint": "tsc --noEmit",
-    "test": "npm run lint && npx --yes tsx --test nodes/TestNeo/executionStatus.test.ts && npm run build",
-    "prepublishOnly": "npm run test"
+    "test": "npm run lint && npx --yes tsx --test test/executionStatus.test.ts && npm run build",
+    "prepublishOnly": "npm run test",
+    "scan": "npx --yes @n8n/scan-community-package n8n-nodes-testneo"
   },
   "files": [
     "dist"

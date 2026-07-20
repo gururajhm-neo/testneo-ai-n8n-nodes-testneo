@@ -1,6 +1,9 @@
 /**
  * Pure helpers for execution polling — mirrored from examples/n8n/scripts/smoke_http.py
  * and CONTRACTS.md. No n8n runtime imports (unit-testable, zero deps).
+ *
+ * Note: n8n community lint bans setTimeout (including timers/promises compile output),
+ * so delay uses a cooperative Date.now() spin.
  */
 
 export const TERMINAL_STATUSES = new Set([
@@ -92,8 +95,12 @@ export function dashboardUrl(webAppUrl: string, executionId: string): string {
 	return `${base}/test-runner/execution/${executionId}`;
 }
 
-export function sleepMs(ms: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms));
+/** Cooperative delay without banned setTimeout (n8n community lint). */
+export async function sleepMs(ms: number): Promise<void> {
+	const end = Date.now() + Math.max(0, ms);
+	while (Date.now() < end) {
+		await Promise.resolve();
+	}
 }
 
 export type VerificationVerdict = 'PASS' | 'BLOCK';

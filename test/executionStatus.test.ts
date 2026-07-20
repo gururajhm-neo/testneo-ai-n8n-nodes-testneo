@@ -9,7 +9,7 @@ import {
 	normalizeStatus,
 	pickStatus,
 	verdictFromParts,
-} from './executionStatus';
+} from '../nodes/TestNeo/executionStatus';
 
 describe('executionStatus', () => {
 	it('normalizes status case', () => {

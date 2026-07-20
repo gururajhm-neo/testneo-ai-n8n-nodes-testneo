@@ -17,7 +17,10 @@ export class TestNeoApi implements ICredentialType {
 
 	documentationUrl = 'https://testneo.ai/docs/n8n.html';
 
-	icon: Icon = { light: 'file:../nodes/TestNeo/testneo.svg', dark: 'file:../nodes/TestNeo/testneo.svg' };
+	icon: Icon = {
+		light: 'file:../nodes/TestNeo/testneo.svg',
+		dark: 'file:../nodes/TestNeo/testneo.dark.svg',
+	};
 
 	properties: INodeProperties[] = [
 		{

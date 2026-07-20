@@ -5,7 +5,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeApiError, NodeOperationError } from 'n8n-workflow';
 
 import {
 	asRecord,
@@ -29,7 +29,7 @@ export class TestNeo implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'TestNeo',
 		name: 'testNeo',
-		icon: { light: 'file:testneo.svg', dark: 'file:testneo.svg' },
+		icon: { light: 'file:testneo.svg', dark: 'file:testneo.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
@@ -73,28 +73,34 @@ export class TestNeo implements INodeType {
 				},
 				options: [
 					{
+						name: 'Execute Test Case',
+						value: 'executeTestCase',
+						action: 'Execute golden test case',
+						description: 'POST …/test-cases/{ID}/execute',
+					},
+					{
+						name: 'Get Execution Summary',
+						value: 'getExecutionSummary',
+						action: 'Get execution summary',
+						description: 'GET …/analytics/execution/{ID}/summary (one shot)',
+					},
+					{
 						name: 'Ingest Agent Run',
 						value: 'ingestAgentRun',
 						action: 'Ingest agent run summary',
 						description: 'POST …/unified-contexts/ingest/agent-run (Template 2)',
 					},
 					{
-						name: 'Semantic Assert',
-						value: 'semanticAssert',
-						action: 'Run semantic assert',
-						description: 'POST /semantic-assert — claim vs expected meaning',
+						name: 'List Outcomes',
+						value: 'listOutcomes',
+						action: 'List release outcomes',
+						description: 'GET /release-readiness/outcomes',
 					},
 					{
-						name: 'Execute Test Case',
-						value: 'executeTestCase',
-						action: 'Execute golden test case',
-						description: 'POST …/test-cases/{id}/execute',
-					},
-					{
-						name: 'Get Execution Summary',
-						value: 'getExecutionSummary',
-						action: 'Get execution summary',
-						description: 'GET …/analytics/execution/{id}/summary (one shot)',
+						name: 'Mark Deployed',
+						value: 'markDeployed',
+						action: 'Create release outcome stub',
+						description: 'POST /release-readiness/outcome (Template 3)',
 					},
 					{
 						name: 'Poll Execution',
@@ -105,27 +111,21 @@ export class TestNeo implements INodeType {
 					{
 						name: 'Post-Agent Verification',
 						value: 'postAgentVerification',
-						action: 'Run full post-agent gate',
+						action: 'Run full post-agent verification',
 						description:
 							'Ingest → semantic assert → execute → poll → PASS/BLOCK (Template 1)',
-					},
-					{
-						name: 'Mark Deployed',
-						value: 'markDeployed',
-						action: 'Create release outcome stub',
-						description: 'POST /release-readiness/outcome (Template 3)',
-					},
-					{
-						name: 'List Outcomes',
-						value: 'listOutcomes',
-						action: 'List release outcomes',
-						description: 'GET /release-readiness/outcomes',
 					},
 					{
 						name: 'Record Outcome',
 						value: 'recordOutcome',
 						action: 'Record release outcome',
-						description: 'PATCH /release-readiness/outcome/{id}',
+						description: 'PATCH /release-readiness/outcome/{ID}',
+					},
+					{
+						name: 'Semantic Assert',
+						value: 'semanticAssert',
+						action: 'Run semantic assert',
+						description: 'POST /semantic-assert — claim vs expected meaning',
 					},
 				],
 				default: 'postAgentVerification',
@@ -166,7 +166,7 @@ export class TestNeo implements INodeType {
 						operation: ['ingestAgentRun', 'postAgentVerification'],
 					},
 				},
-				description: 'agent_run_summary.v1 object (see examples/n8n/fixtures/)',
+				description: 'Agent run summary (agent_run_summary.v1 object; see package README fixtures)',
 			},
 			{
 				displayName: 'Upsert',
@@ -281,7 +281,7 @@ export class TestNeo implements INodeType {
 				type: 'boolean',
 				default: false,
 				description:
-					'true = VPN/internal apps with TestNeo local agent connected. false = cloud execution (default).',
+					'Whether to use the TestNeo local agent for VPN or internal apps. When off, uses cloud execution',
 				displayOptions: {
 					show: {
 						resource: [RESOURCE],
@@ -306,7 +306,8 @@ export class TestNeo implements INodeType {
 				name: 'skipExecution',
 				type: 'boolean',
 				default: false,
-				description: 'If true, post-agent verification stops after semantic assert (contract mode).',
+				description:
+					'Whether to skip test execution after semantic assert (contract-only mode)',
 				displayOptions: {
 					show: {
 						resource: [RESOURCE],
@@ -358,7 +359,8 @@ export class TestNeo implements INodeType {
 				name: 'failOnBlock',
 				type: 'boolean',
 				default: true,
-				description: 'Throw NodeOperationError when verdict is BLOCK (recommended for gates).',
+				description:
+					'Whether to throw a NodeOperationError when the verification verdict is BLOCK',
 				displayOptions: {
 					show: {
 						resource: [RESOURCE],
@@ -421,7 +423,8 @@ export class TestNeo implements INodeType {
 				displayName: 'Limit',
 				name: 'limit',
 				type: 'number',
-				default: 30,
+				default: 50,
+				description: 'Max number of results to return',
 				typeOptions: { minValue: 1, maxValue: 100 },
 				displayOptions: {
 					show: {
@@ -524,7 +527,10 @@ export class TestNeo implements INodeType {
 					});
 					continue;
 				}
-				throw error;
+				if (error instanceof NodeOperationError || error instanceof NodeApiError) {
+					throw error;
+				}
+				throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });
 			}
 		}
 
@@ -846,7 +852,7 @@ async function markDeployed(this: IExecuteFunctions, itemIndex: number): Promise
 
 async function listOutcomes(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
 	const projectId = this.getNodeParameter('projectId', itemIndex) as number;
-	const limit = this.getNodeParameter('limit', itemIndex, 30) as number;
+	const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 
 	const response = await testNeoApiRequest.call(
 		this,

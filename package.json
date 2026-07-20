@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-testneo",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Official TestNeo community node — agent-run ingest, post-agent verification (PASS/BLOCK), and release outcome recording. Same REST contracts as the TestNeo n8n HTTP templates.",
   "license": "MIT",
   "homepage": "https://testneo.ai/docs/n8n.html",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gururajhm-neo/testneo-ai-n8n-nodes-testneo.git"
+    "url": "git+https://github.com/gururajhm-neo/testneo-ai-n8n-nodes-testneo.git"
   },
   "keywords": [
     "n8n-community-node-package",

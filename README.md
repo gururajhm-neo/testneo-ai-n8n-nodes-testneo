@@ -1,4 +1,4 @@
-# n8n-nodes-testneo
+# n8n-nodes-testneo 
 
 Official **TestNeo** community node for n8n. Same REST contracts as the HTTP templates in [`examples/n8n/`](../../examples/n8n/) — agent-run ingest, semantic assert, golden test execute/poll, release outcomes, and a one-shot **Post-Agent Verification** gate (PASS/BLOCK).
 

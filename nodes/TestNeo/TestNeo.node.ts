@@ -110,9 +110,9 @@ export class TestNeo implements INodeType {
 						description: 'Poll execution summary until PASS/FAIL terminal status',
 					},
 					{
-						name: 'Post-Agent Verification',
+						name: 'Post Agent Verification',
 						value: 'postAgentVerification',
-						action: 'Run post-agent verification',
+						action: 'Run post agent verification',
 						description:
 							'Ingest → semantic assert → execute → poll → PASS/BLOCK (Template 1)',
 					},
@@ -308,7 +308,7 @@ export class TestNeo implements INodeType {
 				type: 'boolean',
 				default: false,
 				description:
-					'Whether to skip test execution after semantic assert (contract-only mode).',
+					'Whether to skip test execution after semantic assert (contract-only mode)',
 				displayOptions: {
 					show: {
 						resource: [RESOURCE],
@@ -361,7 +361,7 @@ export class TestNeo implements INodeType {
 				type: 'boolean',
 				default: true,
 				description:
-					'Whether to throw a NodeOperationError when the verification verdict is BLOCK.',
+					'Whether to throw a NodeOperationError when the verification verdict is BLOCK',
 				displayOptions: {
 					show: {
 						resource: [RESOURCE],

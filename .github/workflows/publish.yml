@@ -10,23 +10,21 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      # Required for npm Trusted Publisher (OIDC) + provenance
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
 
+      # Do NOT set registry-url — it writes always-auth + empty _authToken
+      # which breaks Trusted Publisher OIDC (npm returns 404).
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
           cache: npm
 
-      # OIDC trusted publishing needs a recent npm CLI
       - name: Upgrade npm
         run: npm install -g npm@latest
 
-      # Skip native builds (isolated-vm from n8n-workflow). Zero runtime deps.
       - name: Install
         run: npm ci --ignore-scripts || npm install --ignore-scripts
 
@@ -36,8 +34,14 @@ jobs:
       - name: Test and build
         run: npm test
 
-      # Do NOT set NODE_AUTH_TOKEN — a bad token forces legacy auth and
-      # overrides Trusted Publisher OIDC (causes 403 Forbidden).
+      - name: Clear legacy npm auth (force OIDC)
+        run: |
+          npm config delete always-auth || true
+          npm config delete '//registry.npmjs.org/:_authToken' || true
+          rm -f .npmrc "$HOME/.npmrc" || true
+          echo "npm config (auth-related):"
+          npm config list -l | grep -E 'auth|registry' || true
+
       - name: Publish to npm with provenance (OIDC)
         if: startsWith(github.ref, 'refs/tags/0.')
         run: npm publish --access public --provenance
